@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {growth,escapeHTML,selectRepos,plantSVG} from '../dist/garden.js';
+const now=Date.parse('2026-10-11T00:00:00Z');
+test('growth stage transitions at 30 and 180 days',()=>{for(const [age,expected] of [[0,0],[29,0],[30,1],[179,1],[180,2]])assert.equal(growth({created_at:new Date(now-age*86400000).toISOString()},now),expected);});
+test('repository descriptions are escaped as text',()=>assert.equal(escapeHTML('<img src=x onerror="alert(1)">&'), '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;&amp;'));
+test('filter and sort preserve input order',()=>{const repos=[{name:'z',fork:false,stargazers_count:1},{name:'a',fork:true,stargazers_count:4}];assert.equal(selectRepos(repos,'forks','stars')[0].name,'a');assert.equal(selectRepos(repos,'all','name')[0].name,'a');assert.equal(repos[0].name,'z');assert.equal(selectRepos(repos,'original','stars').length,1);});
+test('plant render has bounded blossoms and includes insect only for open items',()=>{const r={created_at:new Date(now-400*86400000).toISOString(),language:'Python',stargazers_count:100000,open_issues_count:0};const svg=plantSVG(r);assert.equal((svg.match(/circle r="5"/g)||[]).length,5);assert.ok(!svg.includes('translate(146 151)'));assert.ok(plantSVG({...r,open_issues_count:2}).includes('translate(146 151)'));});
